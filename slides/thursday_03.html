@@ -211,7 +211,7 @@ Permanent for a specific user creating the variable. Depending on the shell bein
 echo 'export MY_VARIABLE="my_value"' >> ~/.bashrc
 source ~/.bashrc
 ```
-Or to add them system-wide for all users/automations to easily access add them:
+You can add a system-wide environment variable so all users/automations to easily access add them:
 ```sh
 sudo echo 'MY_VARIABLE="my_value"' >> /etc/environment
 sudo nano /etc/environment
@@ -227,17 +227,18 @@ class: contentpage
 
 You have seen may examples of this already, particulary in the example bash scripts
 ```sh
-$VARIALBLE
-"${PATH_VARIABLE}/sub_folder/"
+"$ENV_VARIALBLE"
+echo $ENV_VARIABLE
 ```
-<font color="orange">Practise:</font> In a Python REPL try using the `os` module to create, get and delete variables:
+<font color="orange">Practise:</font> In a Python REPL try using the `os` module to create, get and delete variables.
 ```python3
 import os
-# Retrieve environmental variable
-variable = os.environ.get('VARIABLE_NAME')
 
 # Set an environmental variable in the current process only
 os.environ['NEW_VARIABLE'] = 'my new data'
+
+# Retrieve environmental variable
+variable = os.environ.get('VARIABLE_NAME')
 
 # Safely check if the environmental variable exists
 if 'VARIABLE_NAME' in os.environ:
@@ -265,6 +266,44 @@ load_dotenv()
 # Access the variables
 secret_key = os.getenv('SECRET_KEY')
 ```
+---
+class: contentpage
+### **3. Expanding workflows with APIs**
+
+
+.left[<img src="https://raw.githubusercontent.com/digitensions/summer-school-2024-local/main/thursday/images/Screenshot 2024-09-22 at 12.39.31 " width="840">]
+
+
+APIs used in the BFI's python code base and for version control
+
+
+---
+class: contentpage
+### **3.1 RESTful API basics**
+
+REST (Representational State Transfer) API of API that allows two systems to exchange information over the internet or a network. It follows a set of architectural principles for designing networked applications. It's an approach to building APIs that uses HTTP methods to operate on resources, typically represented as URLs.  
+
+Key Characteristics of REST APIs:  
+
+- Stateless: Each request contains all necessary information.
+- Client-Server: Separation of concerns between client and server.
+- Cacheable: Responses can be cached to improve efficiency.
+- Uniform Interface: Consistent way to interact with resources.
+- Layered System: Client doesn't know or care how many layers are between it and the server.
+
+
+
+---
+ 3.2 Requests library  
+ 3.3 Authentication and rate limiting  
+ 3.4 Cloud storage and AWS S3  
+
+4. Elasticsearch and MySQL connections  
+ 4.1 Elasticsearch Indexing, searching documents     
+ 4.2 Connecting to MySQL databases  
+ 4.3 Search and retrieval with sqlite3 
+
+
 
     </textarea>
     <script src="https://remarkjs.com/downloads/remark-latest.min.js" type="text/javascript"></script>
