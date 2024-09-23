@@ -30,9 +30,9 @@ class: contentpage
  3.3 Rate limiting  
  3.4 AWS S3 cloud storage
 
-4. Elasticsearch and MySQL connections  
+4. Elasticsearch indexes and SQLite databases  
  4.1 Elasticsearch Indexing, searching documents     
- 4.2 Connecting to MySQL databases  
+ 4.2 Connecting to SQLite databases  
  4.3 Search and retrieval with sqlite3 
 
 ---
@@ -303,7 +303,7 @@ Different HTTP response codes are returned depending on the success of you call:
 - 400 Bad Request is returned when something is wrong with the call or the endpoint
 - 404 Not Found is returned when an API URL is incorrect or the API is off-line
 - 401 is returned when an unauthorised request is placed
-
+- 500 is returned when the API system has a problem, like the API cannot connect to the database
 ---
 class: contentpage
 ### **3.1 RESTful API basics**
@@ -331,6 +331,12 @@ POST
   "year_published": "1968"
 }
 ```
+---
+class: contentpage
+### **3.2 Requests library**
+
+.left[<img src="https://raw.githubusercontent.com/digitensions/summer-school-2024-local/main/thursday/images/Screenshot 2024-09-23 at 22.18.23.png" width="600">]
+
 ---
 class: contentpage
 ### **3.2 Requests library**
@@ -436,7 +442,7 @@ print(response.json())
 ```
 ---
 class: contentpage
-### **3.3 Rate limiting**
+### **3.3 Rate limiting and Retrying**
  
 API rate limiting is a technique used to control the number of requests that a client can make to an API within a specified period.
 - Rate limiting protects against Denial-of-Service (DoS) attacks and offenses like spamming API endpoints
@@ -462,9 +468,33 @@ def call_api(url):
 ```
 ---
 class: contentpage
+### **3.3 Rate limiting and Retrying**
+
+Sometimes APIs can have communications problems, like connection timeouts or an internal error like failed database connection (500 error code). When this happens it's useful to have some means of catching it and retrying your call again.  Tenacity is my favourite Python package, which is a library for retrying code after experiencing a failure of these kinds.  
+
+```sh
+pip install tenacity
+```
+Tenacity uses function `decorators` to tell functions to retry. By default @retry will work after any raised exception.
+```python3
+from tenacity import *
+
+@retry
+def func(filename):
+    try:
+        response = requests.get(url)
+    except requests.exceptions.Timeout as error:
+        raise error
+```
+It's really easy to customise the `@retry` decorator to limit the amount of retries and to set a wait duration
+```python
+@retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
+```
+---
+class: contentpage
 ### **3.4 AWS S3 cloud storage**  
 
-Not all RESTful APIs use Python `requests` library for access. Amazon Web Service Simple Storage Service (AWS S3) has an Software Developer Kit (SDK) which uses a Python package called boto3. S3 is an object storage service from AWS, very popular for video and image storage and reliable. Being able to connect your scripts to it can help create scalable applications.
+Not all RESTful APIs use Python `requests` library for access. Amazon Web Service Simple Storage Service (AWS S3) has a Software Developer Kit (SDK) which uses a Python package called boto3. S3 is an object storage service.
 
 `Boto3` allows you to directly create, update and delete AWS resources from Python.
 ```sh
@@ -503,10 +533,90 @@ s3_resource.create_bucket(Bucket=bucket_name,
 ```
 You also need to add the bucket configuration with your location.
 ---
-4. Elasticsearch and MySQL connections  
- 4.1 Elasticsearch Indexing, searching documents     
- 4.2 Connecting to MySQL databases  
- 4.3 Search and retrieval with sqlite3 
+class: contentpage
+### **3.4 AWS S3 cloud storage** 
+
+To upload a file to your new bucket launch a `client` instance and use the `upload_file` method:
+```python3
+s3 = boto3.client('s3')
+try:
+    s3.upload_file('file_path', bucket_name, filename)
+except botocore.exceptions.ClientError as err:
+    raise err
+```
+The filename should be include any folder structures you wish to see mapped into your S3 bucket.
+
+And the download method can be similarly easy with the AWS SDK `client`:
+```python3
+import boto3
+
+s3 = boto3.client('s3')
+s3.download_file('bucket_name', 'object_name', 'local_file_name')
+```
+The `download_file` method accepts the names of the bucket and object to download and the last entry is the filename you want to give to the object after download.
+
+---
+class: contentpage
+### **4. Elasticsearch indexes and SQLite databases** 
+
+The BFI National Archive have a few resources built upon Elasticsearch and SQLite. We use them to store temporary request information between departments.
+
+.centre[<img src="https://raw.githubusercontent.com/digitensions/summer-school-2024-local/main/thursday/images/Screenshot 2024-09-23 at 21.50.54.png" width="800">]
+
+Our SQLite interaction gathers user requests to preserve television programming from curatorial teams. A web interface is provided for them to select a TV channel and data, this is stored into our SQLite database and queried by Python daily, moving files automatically from their back up location into our ingest pathway.
+
+---
+class: contentpage
+### **4. Elasticsearch indexes and SQLite databases** 
+
+.centre[<img src="https://raw.githubusercontent.com/digitensions/summer-school-2024-local/main/thursday/images/Screenshot 2024-09-23 at 21.52.42.png" width="1000">]
+
+Our Elasticsearch index integrates between BFI DPI Browser, which allows colleagues to review ingested file and request to download/transcode them from our Black Pearl tape library. The Elasticsearch index receives this data from the UI frontend, and is queried by my Python scripts to see if new downlaod requests have been placed.
+
+When a file has been processed the `Current status` is updated from `Requested` to `Download complete`, and the Python scripts ignore it.
+
+Storage capacity:
+- An SQLite database can hold is equivalent to 281TB, so many trillions of rows of data (18446744073709551616)
+- Elasticsearch in comparison can hold 2GB of data, and you cannot query more than 10,000 rows at once
+---
+class: contentpage
+### **4.1 Elasticsearch Indexing, searching documents**   
+
+About Elasticsearch:
+- Searching in Elasticsearch is very accurate and incredibly fast
+- It’s highly scalable across servers and it's easy to replicate data between indexes
+- Elasticsearch is very popular for log searching and analysis
+- Basic units of information within elasticsearch and are stored in JSON format.
+
+Elasticsearch, which requires installation of Elasticsearch software, and also pip installation of `elasticsearch`.
+```sh
+pip install elasticsearch
+```
+An Elasticsearch index can be viewed from your computer using `http://localhost:9200`, or other port number. From here you can view the contents of your index.
+```python
+from elasticsearch import Elasticsearch
+
+# Set up Elasticsearch
+ES = Elasticsearch(['http://localhost:9200'])
+if not ES.ping():
+    print("Something's broken with your path: 'http://localhost:9200'")
+    sys.exit()
+```
+---
+class: contentpage
+### **4.1 Elasticsearch Indexing, searching documents**   
+
+So to help demonstrate how both Elasticsearch and SQLite work, I have build a script which creates an example of each, allows us to populate it with data, search and then udpate specific fields in both.
+
+
+---
+class: contentpage
+### **4.2 Connecting to SQLite databases**
+
+
+---
+class: contentpage
+### **4.3 Search and retrieval with sqlite3**
 
 
 
