@@ -1,0 +1,50 @@
+[
+    {
+        "id": 0,
+        "title": "The Peregrine",
+        "author": "J A Baker",
+        "first_sentence": "East of my home, the long ridge lies across the skyline like the low hull of a submarine.",
+        "year_published": "1967"
+    },
+    {
+        "id": 1,
+        "title": "Ted Talks",
+        "author": "Chris Anderson",
+        "first_sentence": "The house lights dim.",
+        "year_published": "2016"
+    },
+    {
+        "id": 2,
+        "title": "The Luminaries",
+        "author": "Eleanor Catton",
+        "first_sentence": "The twelve men congregated in the smoking room of the Crown Hotel gave the impression of a party accidentally met.",
+        "year_published": "2014"
+    },
+    {
+        "id": 3,
+        "title": "Women Who Fly",
+        "author": "Serenity Young",
+        "first_sentence": "Perhaps the world's most famous image of a winged female is the statue of the Greek goddess of victory, Nike, also known as the Victory of Samothrace - a centrepiecee of the Louvre Museum, where it is magnificently displayed in all its glory at the top of Daru stairway, formerly the museum's main entrance.",
+        "year_published": "2018"
+    },
+    {
+        "id": 4,
+        "title": "Jonathan Strange and Mr Norrell",
+        "author": "Susanna Clarke",
+        "first_sentence": "Some years ago there was in the city of York a society of magicians.",
+        "year_published": "2004"
+    },
+    {
+        "id": 5,
+        "title": "Titus Groan",
+        "author": "Mervyn Peake",
+        "first_sentence": "Gormenghast, that is, the main massing of the original stone, taken by itself would have displayed a certain ponderous architectural quality were it possible to have ignored the circumfusion of those mean dwellings that swarmed like an epidemic around its outer walls",
+        "year_published": "1968"
+    },
+    {
+        "author": "Ursula K. Le Guin",
+        "title": "The Left Hand of Darkness",
+        "first_sentence": "I'll make my report as if I told a story, for I was taught as a child on my homeworld that Truth is a matter of the imagination.",
+        "published": 1969
+    }
+]

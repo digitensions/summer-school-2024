@@ -27,8 +27,8 @@ class: contentpage
 3. Expanding workflows with APIs   
  3.1 RESTful API basics  
  3.2 Requests library  
- 3.3 Authentication and rate limiting  
- 3.4 Cloud storage and AWS S3  
+ 3.3 Rate limiting  
+ 3.4 AWS S3 cloud storage
 
 4. Elasticsearch and MySQL connections  
  4.1 Elasticsearch Indexing, searching documents     
@@ -181,7 +181,7 @@ Advantages when using them in your code:
 class: contentpage
 ### **2.1 Setting environmental variables in Windows**
 
-Create a temporary environmental variable for current session only.  
+Create a temporary environmental variable for current session only - make the variable name unique!  
 In Command Prompt then Powershell:  
 ```sh
 set MY_VARIABLE=my_value
@@ -216,7 +216,7 @@ You can add a system-wide environment variable so all users/automations to easil
 sudo echo 'MY_VARIABLE="my_value"' >> /etc/environment
 sudo nano /etc/environment
 ```
-To make the variable available you need to run this command then log in the server again:
+To make the variable available you need to run this command then log in the server again plus log out and in again:
 ```sh
 source /etc/environment
 ```
@@ -254,13 +254,23 @@ if 'NEW_VARIABLE' in os.environ:
 class: contentpage
 ### **2.2 Accessing environmental variables in code**
 
-Python's `python-dotenv` module is often used to store sensitive information. This data is stored in a '.env' file which can be excluded from version control. They can also be useful if you need to keep environmental variable separate between different stagings on one server, when running development, testing and production environments.
+Python's `python-dotenv` module can store sensitive information across development versions. This data is stored in a '.env' file which can be excluded from version control. They can also be useful if you need to keep environmental variable separate between different stagings on one server, when running development, testing and production environments.
+
+The project can be installed from PyPi.
+```sh
+pip install python-env
+```
+
+To configure the development environment, add a .env in the root directory of your project:
+```
+.
+├── .env
+└── script.py
+```
 
 ```python3
 from dotenv import load_dotenv
 import os
-
-# Load environmental variables from a .env file
 load_dotenv()
 
 # Access the variables
@@ -271,33 +281,228 @@ class: contentpage
 ### **3. Expanding workflows with APIs**
 
 
-.left[<img src="https://raw.githubusercontent.com/digitensions/summer-school-2024-local/main/thursday/images/Screenshot 2024-09-22 at 12.39.31 " width="840">]
-
-
-APIs used in the BFI's python code base and for version control
+.center[<img src="https://raw.githubusercontent.com/digitensions/summer-school-2024-local/main/thursday/images/Screenshot 2024-09-22 at 12.39.31.png" width="840">]
 
 
 ---
 class: contentpage
 ### **3.1 RESTful API basics**
 
-REST (Representational State Transfer) API of API that allows two systems to exchange information over the internet or a network. It follows a set of architectural principles for designing networked applications. It's an approach to building APIs that uses HTTP methods to operate on resources, typically represented as URLs.  
+RESTful API (REpresentational State Transfer) allow two systems to exchange information over the internet, using HTTP methods GET, PUT, POST, DELETE.
 
-Key Characteristics of REST APIs:  
+Key elements of RESTful APIs include:
+- Client or software on user computer initiates the communication
+- Server offers the API as a means of accessing its data or service
+- The client retrieves a resource from the API
 
-- Stateless: Each request contains all necessary information.
-- Client-Server: Separation of concerns between client and server.
-- Cacheable: Responses can be cached to improve efficiency.
-- Uniform Interface: Consistent way to interact with resources.
-- Layered System: Client doesn't know or care how many layers are between it and the server.
+Each REST message sent and received is self-descriptive which means they contain the requested data, but also information about how to interpret and process them.
 
-
+Different HTTP response codes are returned depending on the success of you call:
+- 200 reports that a request has been successful
+- 201 can sometimes be used to report a successful create (POST) 
+- 400 Bad Request is returned when something is wrong with the call or the endpoint
+- 404 Not Found is returned when an API URL is incorrect or the API is off-line
+- 401 is returned when an unauthorised request is placed
 
 ---
- 3.2 Requests library  
- 3.3 Authentication and rate limiting  
- 3.4 Cloud storage and AWS S3  
+class: contentpage
+### **3.1 RESTful API basics**
 
+- An endpoint URL for the API
+```sh
+URL = "http://127.0.0.1:5000/api/v1/resources/books"
+```
+- The HTTP method for Create (POST), Read (GET), Update (PUT), Delete (DELETE) - A 'CRUD' action
+```sh
+POST
+```
+- HTTP headers such as authentication tokens or content type confirmation
+```sh
+"content-type": "application/json"
+"accept": "application/json"
+"apikey": os.environ['API_KEY']
+```
+- Body data usually supplied in XML or JSON encoded strings
+```sh
+{
+  "title": "Titus Groan",
+  "author": "Mervyn Peake",
+  "first_sentence": "Gormenghast, that is, the main massing of the original stone, taken by itself would have displayed a certain ponderous architectural quality were it possible to have ignored the circumfusion of those mean dwellings that swarmed like an epidemic around its outer walls",
+  "year_published": "1968"
+}
+```
+---
+class: contentpage
+### **3.2 Requests library**
+
+Requests is the standard method for sending HTTP requests in Python. The library simplifies the process of sending and receiving, leaving developers with more time to process the data received!
+
+Let try using the requests library using a Flask API linked to a database of sci-fi book authors. Flask is a micro web framework written in Python that is well-suited for building REST APIs due to its flexibility and simplicity. This API has no authentication requirements and requires the wifi to be on.
+
+<font color="orange">Practise:</font> Load your Python REPL from your VENV, and check if requests is installed. If not call `pip install requests`. Then test a simple GET request and look at the different responses available:
+```python
+import requests
+
+# Set the URL for retrieving all contents
+URL = "http://127.0.0.1:5000/api/v1/resources/books/all"
+
+# Create the HTTP GET request
+response = requests.get(url)
+
+# Assess the reponse data
+print(f"Method used: {response.request.method}")
+print(f"Response status code: {response.status_code}"")
+print(f"Content-Type: {response.headers.get('Content-Type')})
+print(f"Response date: {response.headers.get('Date')})
+print(f"Response: {response.json()}")
+```
+
+---
+class: contentpage
+### **3.2 Requests library**
+
+
+If you load this web page in your browser we can view the book samples pre-loaded into the SQLite database the Flask API is connected to:
+```sh
+127.0.0.1:5000/api/v1/resources/books/all
+```
+<font color="orange">Practise:</font> Try more focused GET requests by picking an author and searching for the author's name, publishing date or title of the book:
+```python3
+import requests
+
+URL = "http://127.0.0.1:5000/api/v1/resources/books"
+
+query = {
+  "author": "China Mieville"
+}
+
+book = requests.get(URL, params=query, verify=False)
+print(book.text)
+print(book.json())
+```
+
+---
+class: contentpage
+### **3.2 Requests library**
+
+<font color="orange">Practise:</font> Let's make a POST request using a book sample from the repository path `thursday_scripts/api/new_books.json`. The payload dictionary need wrapping in `json.dumps()` method, and ensure you include the headers needed to inform the API how the POST data is formatted:
+
+```python
+import json
+import requests
+
+URL = "http://127.0.0.1:5000/api/v1/resources/books"
+HEADERS = {'Content-Type': 'application/json'}
+
+# Populate a JSON dictionary with sample data from the new_books.json and pick a unique ID 
+# to avoid replicating another user's POST
+
+payload =  {
+  "id": 49,
+  "title": "Titus Groan",
+  "author": "Mervyn Peake",
+  "first_sentence": "Gormenghast, that is, the main massing of the original stone...",
+  "year_published": "1968"
+}
+
+response = requests.post(URL, headers=HEADERS, data=json.dumps(payload))
+print(response.json())
+```
+---
+class: contentpage
+### **3.2 Requests library**
+
+Call all the books again to see if your new book is there:
+```python
+URL = "http://127.0.0.1:5000/api/v1/resources/books/all"
+response = requests.get(URL)
+print(respons.json())
+```
+<font color="orange">Practise:</font> Finally, let's delete our book again using the DELETE request. Import JSON again to format the delete query. Select the title and unique ID of your book just written and build a query dictionary to identify the record for deletion.
+```python
+import json
+import requests
+
+URL = "http://127.0.0.1:5000/api/v1/resources/books"
+HEADERS = {'Content-Type': 'application/json'}
+
+query = {
+  "title": "Titus Groan",
+  "id": 49
+}
+
+response = requests.delete(URL, headers=HEADERS, data=json.dumps(query))
+print(response.json())
+```
+---
+class: contentpage
+### **3.3 Rate limiting**
+ 
+API rate limiting is a technique used to control the number of requests that a client can make to an API within a specified period.
+- Rate limiting protects against Denial-of-Service (DoS) attacks and offenses like spamming API endpoints
+- By limiting requests, servers can efficiently manage resources so no one client can dominate access
+- It can save money when APIs are based in cloud environments and charged based on usage
+- There may be legal or contractual obligations to limit data throughput or access
+
+If you encounter problems you can manage the way your code calls the API by using Python tools like `ratelimit` to control how often your requests are made to an API:
+
+```python3
+from ratelimit import limits
+import requests
+
+FIFTEEN_MINUTES = 900
+
+@limits(calls=15, period=FIFTEEN_MINUTES)
+def call_api(url):
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        raise Exception('API response: {}'.format(response.status_code))
+    return response
+```
+---
+class: contentpage
+### **3.4 AWS S3 cloud storage**  
+
+Not all RESTful APIs use Python `requests` library for access. Amazon Web Service Simple Storage Service (AWS S3) has an Software Developer Kit (SDK) which uses a Python package called boto3. S3 is an object storage service from AWS, very popular for video and image storage and reliable. Being able to connect your scripts to it can help create scalable applications.
+
+`Boto3` allows you to directly create, update and delete AWS resources from Python.
+```sh
+pip install boto3
+```
+To work with the AWS SDK you need to complete a few steps:
+- Create an AWS user account 
+- Select your access type as 'Programmatic access' to receive your access key ID and secret key
+- Select an access policy and create a user account name
+
+Next return to your command line and configure the AWS credentials, then open the credentials and add:
+```sh
+toucn ~/.aws/credentials
+
+[default]
+aws_access_key_id = YOUR_ACCESS_KEY_ID
+aws_secret_access_key = YOUR_SECRET_ACCESS KEY
+```
+---
+class: contentpage
+### **3.4 AWS S3 cloud storage**  
+
+Connect as a client to your AWS S3 SDK:
+```python3
+import boto3
+s3_client = boto3.client('s3')
+```
+You can create a bucket. You need to create a unique name across all AWS buckets globally, so it may help to generate a Unique ID, with `uuid` package. Buckets can be 3 to 63 characters long:
+```python3
+import uuid
+bucket_name = f"BFI_{str(uuid.uuid4())}"
+
+s3_resource.create_bucket(Bucket=bucket_name, 
+                          CreateBucketConfiguration={
+                              'LocationConstraint': 'eu-west-2'})
+```
+You also need to add the bucket configuration with your location.
+---
 4. Elasticsearch and MySQL connections  
  4.1 Elasticsearch Indexing, searching documents     
  4.2 Connecting to MySQL databases  
