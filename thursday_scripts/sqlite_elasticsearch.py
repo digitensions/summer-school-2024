@@ -40,7 +40,7 @@ def create_database_content(target_path) -> None:
         print(f"Supplied path is not recognised: {target_path}")
         return None
 
-    for root, _, files in os.path.walk(target_path):
+    for root, _, files in os.walk(target_path):
         for file in files:
             date_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             fpath = os.path.join(root, file)
@@ -52,13 +52,28 @@ def create_database_content(target_path) -> None:
                 users.commit()
 
 
+def fetch_all() -> list:
+    '''
+    Retrieve all items in a database to view
+    '''
+    all = []
+    connect = sqlite3.connect(DBASE)
+    cursor = connect.cursor()
+    cursor.execute('SELECT * FROM DOWNLOADS')
+    for c in cursor:
+        print(c)
+        all.append(c)
+    return all
+
+
 def fetch_database_content(field, arg) -> list:
     '''
     Pull data from SQL database for test
+    Accepted arguments: 'status' : 'Complete'
     '''
     connect = sqlite3.connect(DBASE)
     cursor = connect.cursor()
-    cursor.execute(f"SELECT * FROM DOWNLOADS where {field} = {arg})")
+    cursor.execute(f"SELECT * FROM DOWNLOADS where {field} = '{arg}'")
     data = cursor.fetchall()
     print(data)
     if isinstance(data, dict):
@@ -120,7 +135,7 @@ def populate_elasticsearch(target_path) -> None:
         print(f"Supplied path is not recognised: {target_path}")
         return None
 
-    for root, _, files in os.path.walk(target_path):
+    for root, _, files in os.walk(target_path):
         for file in files:
             date_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             fpath = os.path.join(root, file)

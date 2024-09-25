@@ -28,12 +28,11 @@ class: contentpage
  3.1 RESTful API basics  
  3.2 Requests library  
  3.3 Rate limiting  
- 3.4 AWS S3 cloud storage
 
-4. Elasticsearch indexes and SQLite databases  
- 4.1 Elasticsearch Indexing, searching documents     
- 4.2 Connecting to SQLite databases  
- 4.3 Search and retrieval with sqlite3 
+4. Elasticsearch and SQLite databases  
+ 4.1 Elasticsearch    
+ 4.2 SQLite database  
+
 
 ---
 class: contentpage
@@ -227,55 +226,21 @@ class: contentpage
 
 You have seen may examples of this already, particulary in the example bash scripts
 ```sh
-"$ENV_VARIALBLE"
+variable="$ENV_VARIABLE"
 echo $ENV_VARIABLE
 ```
-<font color="orange">Practise:</font> In a Python REPL try using the `os` module to create, get and delete variables.
+To access them in Python code:
 ```python3
 import os
-
-# Set an environmental variable in the current process only
-os.environ['NEW_VARIABLE'] = 'my new data'
-
-# Retrieve environmental variable
-variable = os.environ.get('VARIABLE_NAME')
 
 # Safely check if the environmental variable exists
-if 'VARIABLE_NAME' in os.environ:
-    return True
+if 'ENV_VARIABLE' in os.environ:
+    # Retrieve environmental variable
+    variable = os.environ.get('ENV_VARIABLE')
 else:
     return False
-
-# To delete an environmental variable in current process only
-if 'NEW_VARIABLE' in os.environ:
-    del os.environ['NEW_VARIABLE']
-```
----
-class: contentpage
-### **2.2 Accessing environmental variables in code**
-
-Python's `python-dotenv` module can store sensitive information across development versions. This data is stored in a '.env' file which can be excluded from version control. They can also be useful if you need to keep environmental variable separate between different stagings on one server, when running development, testing and production environments.
-
-The project can be installed from PyPi.
-```sh
-pip install python-env
 ```
 
-To configure the development environment, add a .env in the root directory of your project:
-```
-.
-├── .env
-└── script.py
-```
-
-```python3
-from dotenv import load_dotenv
-import os
-load_dotenv()
-
-# Access the variables
-secret_key = os.getenv('SECRET_KEY')
-```
 ---
 class: contentpage
 ### **3. Expanding workflows with APIs**
@@ -294,8 +259,7 @@ Key elements of RESTful APIs include:
 - Client or software on user computer initiates the communication
 - Server offers the API as a means of accessing its data or service
 - The client retrieves a resource from the API
-
-Each REST message sent and received is self-descriptive which means they contain the requested data, but also information about how to interpret and process them.
+- Each REST message sent and received is self-descriptive 
 
 Different HTTP response codes are returned depending on the success of you call:
 - 200 reports that a request has been successful
@@ -343,14 +307,30 @@ class: contentpage
 
 Requests is the standard method for sending HTTP requests in Python. The library simplifies the process of sending and receiving, leaving developers with more time to process the data received!
 
-Let try using the requests library using a Flask API linked to a database of sci-fi book authors. Flask is a micro web framework written in Python that is well-suited for building REST APIs due to its flexibility and simplicity. This API has no authentication requirements and requires the wifi to be on.
+Let try launching the requests library using a Flask API linked to a database of sci-fi book authors. Open a new terminal/command prompt, cd into the `thurdsay_script` folder, then into the `api` folder.
 
-<font color="orange">Practise:</font> Load your Python REPL from your VENV, and check if requests is installed. If not call `pip install requests`. Then test a simple GET request and look at the different responses available:
+```sh
+pip install Flask
+
+python3 api/launch_api.py
+```
+
+Flask is a micro web framework written in Python that is well-suited for building REST APIs due to its flexibility and simplicity. This API has no authentication requirements and requires the wifi to be on.
+
+Load up your web browser and see if this address is showing you a basic database:  
+
+`http://127.0.0.1:5000/api/v1/resources/books/all`
+---
+class: contentpage
+### **3.2 Requests library**
+
+<font color="orange">Practise:</font> Return to your Python shell and call `pip install requests`. Test a simple GET request and look at the different responses available:
 ```python
+pip install requests
 import requests
 
 # Set the URL for retrieving all contents
-URL = "http://127.0.0.1:5000/api/v1/resources/books/all"
+url = "http://127.0.0.1:5000/api/v1/resources/books/all"
 
 # Create the HTTP GET request
 response = requests.get(url)
@@ -367,11 +347,6 @@ print(f"Response: {response.json()}")
 class: contentpage
 ### **3.2 Requests library**
 
-
-If you load this web page in your browser we can view the book samples pre-loaded into the SQLite database the Flask API is connected to:
-```sh
-127.0.0.1:5000/api/v1/resources/books/all
-```
 <font color="orange">Practise:</font> Try more focused GET requests by picking an author and searching for the author's name, publishing date or title of the book:
 ```python3
 import requests
@@ -379,7 +354,7 @@ import requests
 URL = "http://127.0.0.1:5000/api/v1/resources/books"
 
 query = {
-  "author": "China Mieville"
+  "author": "Jo Walton"
 }
 
 book = requests.get(URL, params=query, verify=False)
@@ -391,7 +366,7 @@ print(book.json())
 class: contentpage
 ### **3.2 Requests library**
 
-<font color="orange">Practise:</font> Let's make a POST request using a book sample from the repository path `thursday_scripts/api/new_books.json`. The payload dictionary need wrapping in `json.dumps()` method, and ensure you include the headers needed to inform the API how the POST data is formatted:
+To make a POST request using a book sample from the repository path `thursday_scripts/api/new_books.json`. The payload dictionary need wrapping in `json.dumps()` method, and ensure you include the headers needed to inform the API how the POST data is formatted:
 
 ```python
 import json
@@ -418,13 +393,12 @@ print(response.json())
 class: contentpage
 ### **3.2 Requests library**
 
-Call all the books again to see if your new book is there:
-```python
-URL = "http://127.0.0.1:5000/api/v1/resources/books/all"
-response = requests.get(URL)
-print(respons.json())
-```
-<font color="orange">Practise:</font> Finally, let's delete our book again using the DELETE request. Import JSON again to format the delete query. Select the title and unique ID of your book just written and build a query dictionary to identify the record for deletion.
+You can refresh the website to see if the new book is there:  
+
+`http://127.0.0.1:5000/api/v1/resources/books/all`
+
+
+It's possible to delete the book again using the DELETE request. Import JSON again to format the delete query. Select the title and unique ID of your book just written and build a query dictionary to identify the record for deletion.
 ```python
 import json
 import requests
@@ -490,70 +464,6 @@ It's really easy to customise the `@retry` decorator to limit the amount of retr
 ```python
 @retry(stop=stop_after_attempt(5), wait=wait_fixed(2))
 ```
----
-class: contentpage
-### **3.4 AWS S3 cloud storage**  
-
-Not all RESTful APIs use Python `requests` library for access. Amazon Web Service Simple Storage Service (AWS S3) has a Software Developer Kit (SDK) which uses a Python package called boto3. S3 is an object storage service.
-
-`Boto3` allows you to directly create, update and delete AWS resources from Python.
-```sh
-pip install boto3
-```
-To work with the AWS SDK you need to complete a few steps:
-- Create an AWS user account 
-- Select your access type as 'Programmatic access' to receive your access key ID and secret key
-- Select an access policy and create a user account name
-
-Next return to your command line and configure the AWS credentials, then open the credentials and add:
-```sh
-toucn ~/.aws/credentials
-
-[default]
-aws_access_key_id = YOUR_ACCESS_KEY_ID
-aws_secret_access_key = YOUR_SECRET_ACCESS KEY
-```
----
-class: contentpage
-### **3.4 AWS S3 cloud storage**  
-
-Connect as a client to your AWS S3 SDK:
-```python3
-import boto3
-s3_client = boto3.client('s3')
-```
-You can create a bucket. You need to create a unique name across all AWS buckets globally, so it may help to generate a Unique ID, with `uuid` package. Buckets can be 3 to 63 characters long:
-```python3
-import uuid
-bucket_name = f"BFI_{str(uuid.uuid4())}"
-
-s3_resource.create_bucket(Bucket=bucket_name, 
-                          CreateBucketConfiguration={
-                              'LocationConstraint': 'eu-west-2'})
-```
-You also need to add the bucket configuration with your location.
----
-class: contentpage
-### **3.4 AWS S3 cloud storage** 
-
-To upload a file to your new bucket launch a `client` instance and use the `upload_file` method:
-```python3
-s3 = boto3.client('s3')
-try:
-    s3.upload_file('file_path', bucket_name, filename)
-except botocore.exceptions.ClientError as err:
-    raise err
-```
-The filename should be include any folder structures you wish to see mapped into your S3 bucket.
-
-And the download method can be similarly easy with the AWS SDK `client`:
-```python3
-import boto3
-
-s3 = boto3.client('s3')
-s3.download_file('bucket_name', 'object_name', 'local_file_name')
-```
-The `download_file` method accepts the names of the bucket and object to download and the last entry is the filename you want to give to the object after download.
 
 ---
 class: contentpage
@@ -606,18 +516,47 @@ if not ES.ping():
 class: contentpage
 ### **4.1 Elasticsearch Indexing, searching documents**   
 
-So to help demonstrate how both Elasticsearch and SQLite work, I have build a script which creates an example of each, allows us to populate it with data, search and then udpate specific fields in both.
+So to help demonstrate how both Elasticsearch and SQLite work, I have build a script which creates an example of each, allows us to populate it with data, search and then udpate specific fields in both. You can launch it from the Python shell again:
 
+```python
+import elasticsearch
 
+python3
+
+import sqlite_elasticsearch as se
+
+se.create_index()
+```
+
+Visit `http://localhost:9200` to see the elasticsearch that's launced. Then you can populate your elasticsearch index with a folder full of files, such as the film_scan folder with the DPX in:
+```python
+se.populate_elasticsearch('../media/film_scans/')
+se.search_status('Complete')
+se.search_status('In Progress')
+se.update_status('')
+```
 ---
 class: contentpage
 ### **4.2 Connecting to SQLite databases**
 
+SQLite is one of the most used database engines in the world, operational on mobile phones and computers worldwide. It's a lightweight database whose source code is open source, and you can easily create an SQLite database using Python's sqlite3 library.  
 
----
-class: contentpage
-### **4.3 Search and retrieval with sqlite3**
+The database is stored into a `.db` file in a location of your choice. For this script it will appear inside your `thursday_scripts` folder.
 
+Return to the Python shell, and import the `sqlite_elasticsearch` script to test Sqlite functionality:
+```python3
+import sqlite_elasticsearch as se
+
+se.create_database_content('../media/film_scan/')
+all_entries = se.fetch_all()
+complete_entries = se.fetch_database_content('status', 'Complete')
+filename = se.fetch_database_content('fname', '0086400.dpx')
+```
+The script also includes a function that will change a status, then you can call it again to see it's changed:
+```python3
+se.change_status('0084600.dpx', 'Transcoding', 'Complete')
+filename = se.fetch_database_content('fname', '0086400.dpx')
+```
 
 
     </textarea>

@@ -249,8 +249,8 @@ def validate_transcode(fpath) -> str:
 
     # Check the transcode completed, not truncated    
     cmd = ['mediainfo', '--Output=General;%Duration%', fpath]
-    check = subprocess.run(cmd, shell=False, capture_output=True, text=True)
-    if len(check.stderr) == 0:
+    check = subprocess.check_output(cmd).decode('utf-8').rstrip()
+    if len(check) == 0:
         return f"Error! File duration is absent. File possibly truncated."
 
     # Check the transcode passes the MediaConch policy    
